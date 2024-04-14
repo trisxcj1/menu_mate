@@ -19,7 +19,7 @@ st.set_page_config(
     page_title='MenuMate 🧑🏽‍🍳'
 )
 
-st.title('MenuMate 🧑🏽‍🍳')
+st.title('MenuMate 🍲')
 
 
 if 'messages' not in st.session_state:
