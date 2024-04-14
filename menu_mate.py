@@ -10,9 +10,10 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain import PromptTemplate, LLMChain
 
 from llm_utils import LLMHelper
+from data_utils import DataHelper
 
 llmh__i = LLMHelper()
-
+dh__i = DataHelper()
 
 # Main
 st.set_page_config(
@@ -56,3 +57,9 @@ if user_input := st.chat_input():
     app_reply = llmh__i.generate_llm_response(user_input)
     st.session_state.messages.append({'role': 'assistant', 'content': app_reply})
     st.chat_message('assistant').write(app_reply)
+
+
+data_question = st.text_input('Ask DATA a question')
+if data_question:
+    data_response = dh__i.answer_question_using_data(data_question)
+    st.write(data_response)

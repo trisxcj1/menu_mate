@@ -25,6 +25,7 @@ class LLMHelper:
         ### Instruction:
         You are a food expert. Read the prompt below and continue
         the conversation with the most appropriate response.
+        All responses must be related to food.
 
         ### Prompt:
         {user_input}
