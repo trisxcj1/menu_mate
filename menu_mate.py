@@ -1,6 +1,20 @@
 # Imports
 import streamlit as st
+
 import random
+import time
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+import img2pdf
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+import PyPDF2
+from PyPDF2 import PdfReader, PdfWriter, PdfMerger
+import os
 
 import litellm
 
@@ -59,7 +73,87 @@ if user_input := st.chat_input():
     st.chat_message('assistant').write(app_reply)
 
 
-data_question = st.text_input('Ask DATA a question')
-if data_question:
-    data_response = dh__i.answer_question_using_data(data_question)
-    st.write(data_response)
+# data_question = st.text_input('Ask DATA a question')
+# if data_question:
+#     data_response = dh__i.answer_question_using_data(data_question)
+#     st.write(data_response)
+
+url = 'https://www.umbrellasbeachbargrenada.com/menu'
+
+restaurant_info = "The following menu is for Umbrellas Beach Bar Grenada and this restaurant has opening hours Monday - Friday, 8am - 8pm"
+
+# output_pdf = 'menu.pdf'
+# def save_webpage_to_pdf(url, output_pdf):
+#     try:
+#         pdfkit.from_url(url, output_pdf)
+#         return True
+#     except Exception as e:
+#         st.error(f"Error saving PDF: {e}")
+#         return False
+
+# if save_webpage_to_pdf(url, output_pdf):
+#     with open(output_pdf, 'rb') as f:
+#         pdf_bytes = f.read()
+#     st.write(pdf_bytes, format='pdf')
+def capture_webpage_to_pdf(url):
+    # Initialize Chrome options
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Run Chrome in headless mode
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox")
+
+    # Initialize the web driver (e.g., ChromeDriver)
+    driver = webdriver.Chrome(options=chrome_options)  # Make sure chromedriver is in your PATH or specify its location
+
+    try:
+        # Open the web page
+        driver.get(url)
+        
+        # Wait for the page to load
+        time.sleep(2)  # Adjust the wait time as needed
+        
+        # Capture a screenshot as binary data
+        total_height = driver.execute_script("return document.body.scrollHeight")
+        driver.set_window_size(1200, total_height)
+        screenshot = driver.get_screenshot_as_png()
+
+        # Convert the screenshot image to PDF
+        pdf_bytes = img2pdf.convert(screenshot)
+
+        return pdf_bytes
+
+    except Exception as e:
+        st.error(f"Error capturing PDF: {e}")
+        return None
+
+    finally:
+        # Close the web driver
+        driver.quit()
+
+umbrellas_pdf_bytes = capture_webpage_to_pdf(url)
+other_pdf_bytes = capture_webpage_to_pdf('https://menupages.com/fishermans-cove/2137-nostrand-ave-brooklyn/')
+# pdf_writer = PdfWriter()
+# new_page = PyPDF2.pdf.PageObject.createBlankPage(width=1200, height=200)
+# new_page.mergePage(PyPDF2.pdf.PageObject.createTextObject("hello mate"))
+# pdf_writer.addPage(new_page)
+
+# pdf_reader = PdfReader(BytesIO(pdf_bytes))
+
+# for page_num in range(pdf_reader.numPages):
+#     pdf_writer.addPage(pdf_reader.getPage(page_num))
+
+# output_pdf_bytes = BytesIO()
+# pdf_writer.write(output_pdf_bytes)
+# output_pdf_bytes = output_pdf_bytes.getvalue()
+  
+# pdf_bytes = capture_webpage_to_pdf(url)
+
+output_bytes = other_pdf_bytes + umbrellas_pdf_bytes
+
+if output_bytes:
+    st.download_button(
+            "Download PDF",
+            output_bytes,
+            "umbrellas_menu.pdf",
+            "Click here to download the PDF file"
+        )
