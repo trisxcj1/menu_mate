@@ -1,5 +1,6 @@
 # Imports
 import streamlit as st
+import pandas as pd
 
 import random
 import time
@@ -22,6 +23,7 @@ from langchain.llms import Ollama
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler    
 from langchain import PromptTemplate, LLMChain
+from langchain.memory import ConversationBufferMemory
 
 from llm_utils import LLMHelper
 from data_utils import DataHelper
@@ -29,12 +31,23 @@ from data_utils import DataHelper
 llmh__i = LLMHelper()
 dh__i = DataHelper()
 
+conversation_memory = ConversationBufferMemory()
+
 # Main
 st.set_page_config(
     page_title='MenuMate 🧑🏽‍🍳'
 )
 
 st.title('MenuMate 🍲')
+
+if 'chat_history' not in st.session_state:
+    st.session_state.chat_history = []
+else:
+    for message in st.session_state.chat_history:
+        conversation_memory.save_context(
+            {'input': message['human']},
+            {'output': message['AI']}
+        )
 
 
 if 'messages' not in st.session_state:
@@ -61,16 +74,30 @@ if 'messages' not in st.session_state:
 
 for message in st.session_state.messages[1:]:
     st.chat_message(message['role']).write(message['content'])
-    # if message['content'] != 'Hi! How can I help today 🍲?':
-    #     st.chat_message(message['role']).write(message['content'])
+
 
 if user_input := st.chat_input():
     st.session_state.messages.append({'role': 'user', 'content': user_input})
     st.chat_message('user').write(user_input)
+    
+    app_reply = llmh__i.generate_llm_response(user_input, conversation_memory)
 
-    app_reply = llmh__i.generate_llm_response(user_input)
-    st.session_state.messages.append({'role': 'assistant', 'content': app_reply})
-    st.chat_message('assistant').write(app_reply)
+    st.session_state.messages.append({'role': 'assistant', 'content': app_reply['text']})
+    st.chat_message('assistant').write(app_reply['text'])
+    message = {'human': user_input, 'AI':app_reply['text']}
+    st.session_state.chat_history.append(message)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # data_question = st.text_input('Ask DATA a question')
@@ -130,8 +157,8 @@ def capture_webpage_to_pdf(url):
         # Close the web driver
         driver.quit()
 
-umbrellas_pdf_bytes = capture_webpage_to_pdf(url)
-other_pdf_bytes = capture_webpage_to_pdf('https://menupages.com/fishermans-cove/2137-nostrand-ave-brooklyn/')
+# umbrellas_pdf_bytes = capture_webpage_to_pdf(url)
+# other_pdf_bytes = capture_webpage_to_pdf('https://menupages.com/fishermans-cove/2137-nostrand-ave-brooklyn/')
 # pdf_writer = PdfWriter()
 # new_page = PyPDF2.pdf.PageObject.createBlankPage(width=1200, height=200)
 # new_page.mergePage(PyPDF2.pdf.PageObject.createTextObject("hello mate"))
@@ -148,12 +175,12 @@ other_pdf_bytes = capture_webpage_to_pdf('https://menupages.com/fishermans-cove/
   
 # pdf_bytes = capture_webpage_to_pdf(url)
 
-output_bytes = other_pdf_bytes + umbrellas_pdf_bytes
+# output_bytes = other_pdf_bytes + umbrellas_pdf_bytes
 
-if output_bytes:
-    st.download_button(
-            "Download PDF",
-            output_bytes,
-            "umbrellas_menu.pdf",
-            "Click here to download the PDF file"
-        )
+# if output_bytes:
+#     st.download_button(
+#             "Download PDF",
+#             output_bytes,
+#             "umbrellas_menu.pdf",
+#             "Click here to download the PDF file"
+#         )
