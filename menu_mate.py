@@ -76,16 +76,49 @@ for message in st.session_state.messages[1:]:
     st.chat_message(message['role']).write(message['content'])
 
 
-if user_input := st.chat_input():
+if user_input := st.chat_input(key='general-user-input'):
     st.session_state.messages.append({'role': 'user', 'content': user_input})
     st.chat_message('user').write(user_input)
     
-    app_reply = llmh__i.generate_llm_response(user_input, conversation_memory)
+    classification = llmh__i.generate_question_classification_response(user_input, conversation_memory)
+    if 'G' in classification:
+        app_reply = llmh__i.generate_basic_llm_response(user_input, conversation_memory)
+    else:
+        app_reply = {
+            'text': """
+            Unfortunately, I am umable to provide that information to you at the moment 😕.
+            I am currently learning more about local restaurants and their delicious foods!
+            Once I gather enough information, I will be able to provide you with some amazing
+            food recommendations 🤤.
+            """
+        }
 
     st.session_state.messages.append({'role': 'assistant', 'content': app_reply['text']})
     st.chat_message('assistant').write(app_reply['text'])
     message = {'human': user_input, 'AI':app_reply['text']}
     st.session_state.chat_history.append(message)
+    
+# if direct_question := st.chat_input(key='qa-user-input'):
+#     st.session_state.messages.append({'role': 'user', 'content': direct_question})
+#     st.chat_message('user').write(direct_question)
+    
+#     app_reply = llmh__i.generate_rag_qa_llm_response(direct_question, conversation_memory)
+
+#     st.session_state.messages.append({'role': 'assistant', 'content': app_reply['result']})
+#     st.chat_message('assistant').write(app_reply['result'])
+#     message = {'human': direct_question, 'AI':app_reply['result']}
+#     st.session_state.chat_history.append(message)
+
+### Examples:
+        # **General Questions**:
+        # - How do I make lasagna?
+        # - Help me plan an Italian-themed dinner
+        # - What is alfredo?
+        
+        # **Specific Questions**:
+        # - Which restaurants in Brooklyn have lasagna on the menu?
+        # - Which resaturants is this item available at?
+        # - What are the main courses at Via Carota?
 
 
 
