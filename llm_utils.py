@@ -22,7 +22,7 @@ import streamlit as st
 class LLMHelper:
     """
     """
-    url = 'https://menupages.com/shake-shack/23rd-st-madison-ave-new-york'
+    url = 'https://www.applebees.com/en/menu'
     
     llm = Ollama(
         model='mistral',
@@ -34,25 +34,31 @@ class LLMHelper:
         input_variables=['history', 'input'],
         template="""
         ### Task:
-        Classify a user's question as either 'general' or 'specific'
+        You are to determine user intent, extract relevant information,
+        and classify a user's prompt into one of two categories.
+        
+        1. Identify the user's intent:
+        - If the user is asking about the availability of a specific menu item at a specific restaurant:
+            - Response: "Specific question"
+            
+        - If the user is asking about the price of a specific menu item at a specific restaurant:
+            - Response: "Specific question"
+            
+        - If the user is asking about what items are currently on the menu at a specific restaurant:
+            - Response: "Specific question"
+            
+        - If the user is asking about anythin else:
+            - Response: "General question"
         
         ### Instruction:
-        You are a classifier that analyzes a user's input about food-related prompts
-        and determines whether that user is asking a general question about food,
-        or if the user is asking about food that relates to a specific restaurant or menu.
-        
-        Your output should either be G for general or S for specific - nothing else!
-        
-        You should only classify a response as S if the user is asking whether a specific item
-        is available at a specific place. Otherwise, classify it as G.
-        
-        Each response should be exactly one character, either G or S.
+        Read the user prompt and the conversation history, and complete the task above.
+        The response should be one from the options provided above.
 
         ### Conversation history:
         {history}
 
-        human:{input}
-        AI:
+        ### Prompt
+        {input}
         """
     )
     
@@ -67,8 +73,8 @@ class LLMHelper:
         ### Conversation history:
         {history}
 
-        human:{input}
-        AI:
+        ### Prompt:
+        {input}
         """
     )
     
@@ -110,7 +116,7 @@ class LLMHelper:
         )
         llm_response = conversation_chain(input_message)
         # llm_response['text']
-        return llm_response['text']
+        return llm_response
         
     def generate_basic_llm_response(self, input_message, conversation_memory):
         """

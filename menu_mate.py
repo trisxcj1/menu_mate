@@ -49,14 +49,15 @@ else:
             {'output': message['AI']}
         )
 
+first_message = 'Hi! How can I help today 🍲?'
 
 if 'messages' not in st.session_state:
     st.session_state['messages'] = [{
         'role': 'assistant',
-        'content': 'Hi! How can I help today 🍲?'
+        'content': first_message
     }]
 
-    st.markdown('## Hi! How can I help today 🍲?')
+    st.markdown(f'## {first_message}')
     new_chat_container_p1 = st.empty()
     new_chat_container_p2 = st.empty()
 
@@ -80,8 +81,8 @@ if user_input := st.chat_input(key='general-user-input'):
     st.session_state.messages.append({'role': 'user', 'content': user_input})
     st.chat_message('user').write(user_input)
     
-    classification = llmh__i.generate_question_classification_response(user_input, conversation_memory)
-    if 'G' in classification:
+    classification = llmh__i.generate_question_classification_response(user_input, conversation_memory)['text']
+    if 'general question' in classification.lower():
         app_reply = llmh__i.generate_basic_llm_response(user_input, conversation_memory)
     else:
         app_reply = {
